@@ -17,24 +17,38 @@ public class AuditionController {
     @Autowired
     AuditionService auditionService;
 
-    // TODO Add a query param that allows data filtering. The intent of the filter is at developers discretion.
     @RequestMapping(value = "/posts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody List<AuditionPost> getPosts() {
+    public @ResponseBody List<AuditionPost> getPosts(@RequestParam(required = false) String userId) {
 
-        // TODO Add logic that filters response data based on the query param
+        List<AuditionPost> posts;
+        if (userId != null) {
+            posts = auditionService.getPostsByUserId(Integer.parseInt(userId));
+        } else {
+            posts = auditionService.getPosts();
+        }
 
-        return auditionService.getPosts();
+        return posts;
     }
 
     @RequestMapping(value = "/posts/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public @ResponseBody AuditionPost getPosts(@PathVariable("id") final String postId) {
         final AuditionPost auditionPosts = auditionService.getPostById(postId);
 
-        // TODO Add input validation
+        if (StringUtils.isEmpty(postId)) {
+            throw new IllegalArgumentException("Post ID cannot be empty or null");
+        }
 
-        return auditionPosts;
+        final AuditionPost auditionPost = auditionService.getPostById(postId);
+        return auditionPost;
     }
 
-    // TODO Add additional methods to return comments for each post. Hint: Check https://jsonplaceholder.typicode.com/
+    @RequestMapping(value = "/posts/{postId}/comments", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody List<Comment> getCommentsForPost(@PathVariable("postId") final String postId) {
+        if (StringUtils.isEmpty(postId)) {
+            throw new IllegalArgumentException("Post ID cannot be empty or null");
+        }
+
+        return auditionService.getCommentsForPost(postId);
+    }
 
 }

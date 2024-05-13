@@ -2,7 +2,6 @@ package com.audition.integration;
 
 import com.audition.common.exception.SystemException;
 import com.audition.model.AuditionPost;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,33 +12,60 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class AuditionIntegrationClient {
 
+    private static final String POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
+    private static final String COMMENTS_URL = "https://jsonplaceholder.typicode.com/comments";
+
 
     @Autowired
     private RestTemplate restTemplate;
 
     public List<AuditionPost> getPosts() {
-        // TODO make RestTemplate call to get Posts from https://jsonplaceholder.typicode.com/posts
 
-        return new ArrayList<>();
+        ResponseEntity<List<AuditionPost>> response = restTemplate.exchange(
+            POSTS_URL,
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<List<AuditionPost>>() {
+            }
+        );
+
+        return response.getBody();
+
+
     }
 
     public AuditionPost getPostById(final String id) {
-        // TODO get post by post ID call from https://jsonplaceholder.typicode.com/posts/
         try {
-            return new AuditionPost();
+            ResponseEntity<AuditionPost> response = restTemplate
+                .getForEntity(POSTS_URL + "/{id}", AuditionPost.class, id);
+            return response.getBody();
         } catch (final HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                throw new SystemException("Cannot find a Post with id " + id, "Resource Not Found",
-                    404);
+                throw new SystemException("Cannot find a Post with id " + id, e);
             } else {
-                // TODO Find a better way to handle the exception so that the original error message is not lost. Feel free to change this function.
-                throw new SystemException("Unknown Error message");
+                throw new SystemException("Error occurred while fetching post: " + e.getMessage(), e);
             }
         }
     }
 
-    // TODO Write a method GET comments for a post from https://jsonplaceholder.typicode.com/posts/{postId}/comments - the comments must be returned as part of the post.
+    public List<Comment> getCommentsForPost(final String postId) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(COMMENTS_URL)
+            .queryParam("postId", postId);
 
-    // TODO write a method. GET comments for a particular Post from https://jsonplaceholder.typicode.com/comments?postId={postId}.
-    // The comments are a separate list that needs to be returned to the API consumers. Hint: this is not part of the AuditionPost pojo.
+        ResponseEntity<List<Comment>> response = restTemplate.exchange(
+            builder.toUriString(),
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<List<Comment>>() {
+            }
+        );
+        return response.getBody();
+    }
+
+    public AuditionPost getPostWithCommentsById(final String id) {
+        AuditionPost post = getPostById(id);
+        List<Comment> comments = getCommentsForPost(id);
+        post.setComments(comments);
+        return post;
+    }
 }

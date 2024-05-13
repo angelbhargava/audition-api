@@ -11,5 +11,7 @@ public class AuditionPost {
     private int id;
     private String title;
     private String body;
+    private List<Comment> comments; // Added a new field to hold comments
+
 
 }
