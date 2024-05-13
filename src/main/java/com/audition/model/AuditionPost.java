@@ -3,6 +3,8 @@ package com.audition.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class AuditionPost {
@@ -11,7 +13,7 @@ public class AuditionPost {
     private int id;
     private String title;
     private String body;
-    private List<Comment> comments; // Added a new field to hold comments
+    private List<String> comments; // Added a new field to hold comments
 
 
 }

@@ -22,6 +22,7 @@ public class AuditionLogger {
 
     public void debug(final Logger logger, final String message) {
         if (logger.isDebugEnabled()) {
+
             logger.debug(message);
         }
     }

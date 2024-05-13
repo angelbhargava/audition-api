@@ -2,14 +2,19 @@ package com.audition.web;
 
 import com.audition.model.AuditionPost;
 import com.audition.service.AuditionService;
+
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 @RestController
 public class AuditionController {
@@ -43,12 +48,21 @@ public class AuditionController {
     }
 
     @RequestMapping(value = "/posts/{postId}/comments", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody List<Comment> getCommentsForPost(@PathVariable("postId") final String postId) {
+    public ResponseEntity<List<String>> getCommentsForPost(@PathVariable("postId") String postId) {
         if (StringUtils.isEmpty(postId)) {
-            throw new IllegalArgumentException("Post ID cannot be empty or null");
+            return ResponseEntity.badRequest().build();
         }
 
-        return auditionService.getCommentsForPost(postId);
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://jsonplaceholder.typicode.com/posts/" + postId + "/comments";
+        ResponseEntity<String[]> response = restTemplate.getForEntity(url, String[].class);
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            List<String> comments = Arrays.asList(response.getBody());
+            return ResponseEntity.ok(comments);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }
