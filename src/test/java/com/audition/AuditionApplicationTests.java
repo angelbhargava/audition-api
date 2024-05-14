@@ -22,9 +22,6 @@ class AuditionApplicationTests {
     @Autowired
     private AuditionIntegrationClient auditionIntegrationClient;
 
-    @Test
-    void contextLoads() {
-    }
 
     @Test
     void contextLoads() {

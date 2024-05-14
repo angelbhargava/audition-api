@@ -1,17 +1,13 @@
 package com.audition.configuration;
 
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
+import io.micrometer.tracing.Tracer;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletResponse;
-
-@Aspect
 @Component
-public class ResponseHeaderInjector {
+public class ResponseHeaderInjector implements HandlerInterceptor {
 
     private final Tracer tracer;
 
@@ -19,23 +15,19 @@ public class ResponseHeaderInjector {
         this.tracer = tracer;
     }
 
-    @Around("execution(* com.audition.web.*.*(..))")
-    public Object injectResponseHeaders(ProceedingJoinPoint joinPoint) throws Throwable {
-        Span span = tracer.getCurrentSpan();
-        HttpServletResponse response = getResponse(joinPoint.getArgs());
-        if (span != null && response != null) {
-            response.setHeader("X-Trace-Id", span.getSpanContext().getTraceId());
-            response.setHeader("X-Span-Id", span.getSpanContext().getSpanId());
-        }
-        return joinPoint.proceed();
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        return true;
     }
 
-    private HttpServletResponse getResponse(Object[] args) {
-        for (Object arg : args) {
-            if (arg instanceof HttpServletResponse) {
-                return (HttpServletResponse) arg;
-            }
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        io.micrometer.tracing.Span currentSpan = tracer.currentSpan();
+        if (currentSpan != null) {
+            String traceId = currentSpan.context().traceId();
+            String spanId = currentSpan.context().spanId();
+            response.addHeader("trace-id", traceId);
+            response.addHeader("span-id", spanId);
         }
-        return null;
     }
 }

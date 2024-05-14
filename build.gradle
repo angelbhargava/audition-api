@@ -12,8 +12,8 @@ plugins {
 
 group = 'com.audition'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '21'
-targetCompatibility = '21'
+sourceCompatibility = '17'
+targetCompatibility = '17'
 
 
  apply from: 'config/code-analysis.gradle'
@@ -47,9 +47,11 @@ dependencies {
     implementation "io.micrometer:micrometer-tracing"
     implementation "io.micrometer:micrometer-registry-prometheus"
     implementation "io.micrometer:context-propagation"
+    implementation "jakarta.servlet:jakarta.servlet-api:5.0.0"
 //    implementation "org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j"
 //    implementation "org.springframework.cloud:spring-cloud-starter-config"
 //    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+
 
     checkstyle "com.puppycrawl.tools:checkstyle:9.3.2"
 
